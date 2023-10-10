@@ -783,11 +783,30 @@ class GaussianDiffusion:
         :return: a dict with the key "loss" containing a tensor of shape [N].
                  Some mean or variance settings may also have other keys.
         """
+
+        from utils.dataset_processing.grasp import detect_grasps
+        from inference.post_process import post_process_output
+
+        pred_pos, pred_cos, pred_sin, pred_width = x_start[0, 0], x_start[0, 1], x_start[0, 2], x_start[0, 3]
+        q_img, ang_img, width_img = post_process_output(pred_pos, pred_cos, pred_sin, pred_width)
+        grasps = detect_grasps(q_img, ang_img, width_img, 10)
+        print("Before", grasps[0])
         if model_kwargs is None:
             model_kwargs = {}
         if noise is None:
             noise = th.randn_like(x_start)
+        import torch
+        import numpy as np
+        t = torch.tensor([999 for _ in range(8)]).cuda()
         x_t = self.q_sample(x_start, t, noise=noise)
+
+        pred_pos, pred_cos, pred_sin, pred_width = x_t[0, 0], x_t[0, 1], x_t[0, 2], x_t[0, 3]
+        q_img, ang_img, width_img = post_process_output(pred_pos, pred_cos, pred_sin, pred_width)
+        grasps = detect_grasps(q_img, ang_img, width_img, 10)
+        np.savetxt('logs/before.txt', x_start[0][0].cpu().numpy())
+        np.savetxt('logs/after.txt', x_t[0][0].cpu().numpy())
+
+        raise
 
         terms = {}
 

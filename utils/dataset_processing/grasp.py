@@ -447,6 +447,9 @@ class Grasp:
         self.angle = angle  # Positive angle means rotate anti-clockwise from horizontal.
         self.length = length
         self.width = width
+    
+    def __str__(self) -> str:
+        return "{}, {}, {}, {}".format(self.center, self.angle, self.length, self.width)
 
     @property
     def as_gr(self):
