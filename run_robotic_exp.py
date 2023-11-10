@@ -24,7 +24,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Train network')
 
     # Network
-    parser.add_argument('--network', type=str, default='grconvnet3',
+    parser.add_argument('--network', type=str, default='lgrconvnet3',
                         help='Network name in inference/models')
     parser.add_argument('--input-size', type=int, default=224,
                         help='Input image size for the network')
@@ -42,7 +42,7 @@ def parse_args():
                         help='Threshold for IOU matching')
     parser.add_argument('--cpu', dest='force_cpu', action='store_true', default=False,
                         help='Force code to run in CPU mode')
-    parser.add_argument('--weight', type=str, default='weights/model_cornell',
+    parser.add_argument('--weight', type=str, default='weights/llm/lgrconvnet',
                         help='Network weight in inference mode')
 
 
@@ -63,7 +63,9 @@ def main():
 
     # Sample input
     x = torch.rand(1, 3, 224, 224).cuda()
-    pos_pred, cos_pred, sin_pred, width_pred = net(x)
+    prompt = "" # Default
+    query = "Grasp me the bottle at its neck"
+    pos_pred, cos_pred, sin_pred, width_pred = net(x, prompt, query)
     print(pos_pred.shape, cos_pred.shape, sin_pred.shape, width_pred.shape)
 
 main()

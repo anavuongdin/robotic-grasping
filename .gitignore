@@ -115,3 +115,4 @@ logs/
 trained-models/grasp_det_seg
 weights/RAGT-3-3.pth
 trained-models/lgdm
+weights/llm/*
