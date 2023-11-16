@@ -1,4 +1,7 @@
 # Antipodal Robotic Grasping
+
+[Updated] Weights are available at this [link](https://drive.google.com/file/d/15WDMUKaQ2tUJgiXAqij47NwcxQZ4c801/view?usp=sharing)
+
 ## Installation
 - Checkout the robotic grasping package
 ```bash
@@ -31,6 +34,13 @@ $ pip install -r requirements.txt
 ```bash
 $ python run_robotic_exp.py --weight weights/model_<dataset>
 ```
+
+- Note, to run with diffusion model, please run the following command:
+
+```bash
+$ python run_robotic_exp.py --weight /path/to/weight --diffusion True
+```
+Specifically, diffusion model takes some extra parameters to proceed, it takes six variables, however, two of them are None, two are constants, and the rest is the same as other baselines. Please refer to L75-77, for further information. In general, the input for all baselines are the same.
 
 ## Output structure
 
