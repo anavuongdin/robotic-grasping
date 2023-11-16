@@ -44,6 +44,8 @@ def parse_args():
                         help='Force code to run in CPU mode')
     parser.add_argument('--weight', type=str, default='weights/llm/lgrconvnet',
                         help='Network weight in inference mode')
+    parser.add_argument('--diffusion', type=bool, default=False,
+                        help='Using diffusion model or not')
 
 
     args = parser.parse_args()
@@ -51,6 +53,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    diffusion_flag = args.diffusion
 
     input_channels = 1 * args.use_depth + 3 * args.use_rgb
 
@@ -65,7 +68,13 @@ def main():
     x = torch.rand(1, 3, 224, 224).cuda()
     prompt = "" # Default
     query = "Grasp me the bottle at its neck"
-    pos_pred, cos_pred, sin_pred, width_pred = net(x, prompt, query)
+
+    if not diffusion_flag:
+        pos_pred, cos_pred, sin_pred, width_pred = net(x, prompt, query)
+    else:
+        alpha = 0.4
+        idx = torch.ones(x.shape[0]).to(device)
+        pos_pred, cos_pred, sin_pred, width_pred = net(None, x, None, query, alpha, idx)
     print(pos_pred.shape, cos_pred.shape, sin_pred.shape, width_pred.shape)
 
 main()
