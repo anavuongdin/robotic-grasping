@@ -5,9 +5,9 @@ import torch
 import cv2
 
 def draw_multi_box(img, box_coordinates):
-    point_color1 = (0, 255, 255)  # BGR
-    point_color2 = (0, 255, 255)  # BGR
-    thickness = 5
+    point_color1 = (255, 255, 0)  # BGR
+    point_color2 = (255, 0, 255)  # BGR
+    thickness = 2
     lineType = 4
     for i in range(len(box_coordinates)):
         center = (box_coordinates[i, 1].item(), box_coordinates[i, 2].item())
@@ -24,7 +24,7 @@ def draw_multi_box(img, box_coordinates):
     cv2.destroyAllWindows()
 
 
-files = ['demo/architecture/0a41653e1db8d8af99d4f4622aef8bcbd4c31252893e4863c6a98da19ae6c542.jpg']
+files = ['demo/in_the_wild_cvpr/in-the-wild.jpeg']
 
 chosen_files = np.random.choice(files, 1)
 for file in chosen_files:
@@ -33,23 +33,17 @@ for file in chosen_files:
     all_grasp = []
 
     grasp = [[0.9100020527839661, 
-            143.6877,
-            127.1250, 
-            110.3628,
-            30.5811,
-            140.4553],
+            162.6877,
+            336.1250, 
+            90.3628,
+            20.5811,
+            -15.4553],
             # [0.9100020527839661, 
-            # 129.6877,
-            # 105.1250, 
-            # 113.3628,
-            # 32.5811,
-            # 141.4553],
-            # [0.9100020527839661, 
-            # 167.6877,
-            # 152.1250, 
-            # 112.3628,
-            # 28.5811,
-            # 139.4553]
+            # 160.6877,
+            # 352.1250, 
+            # 90.3628,
+            # 20.5811,
+            # -15.4553],
             ]
     print(grasp)
     all_grasp += grasp
