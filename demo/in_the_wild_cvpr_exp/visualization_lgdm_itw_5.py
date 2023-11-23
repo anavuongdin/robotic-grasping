@@ -1,0 +1,94 @@
+import os
+import pickle
+import numpy as np
+import torch
+import cv2
+
+def draw_multi_box(img, box_coordinates):
+    point_color1 = (255, 255, 0)  # BGR
+    point_color2 = (255, 0, 255)  # BGR
+    thickness = 2
+    lineType = 4
+    for i in range(len(box_coordinates)):
+        center = (box_coordinates[i, 1].item(), box_coordinates[i, 2].item())
+        size = (box_coordinates[i, 3].item(), box_coordinates[i, 4].item())
+        angle = box_coordinates[i, 5].item()
+        box = cv2.boxPoints((center, size, angle))
+        box = np.int64(box)
+        cv2.line(img, box[0], box[3], point_color1, thickness, lineType)
+        cv2.line(img, box[3], box[2], point_color2, thickness, lineType)
+        cv2.line(img, box[2], box[1], point_color1, thickness, lineType)
+        cv2.line(img, box[1], box[0], point_color2, thickness, lineType)
+    cv2.imshow("Image", img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
+files = ['demo/in_the_wild_cvpr_exp/itw_5.png']
+
+chosen_files = np.random.choice(files, 1)
+for file in chosen_files:
+    img = cv2.imread(file)
+
+    all_grasp = []
+
+    grasp = [[0.9100020527839661, 
+            64.6877,
+            137.1250, 
+            30.3628,
+            10.5811,
+            -2.4553],
+            [0.9100020527839661, 
+            40.6877,
+            306.1250, 
+            60.3628,
+            14.5811,
+            -20.4553],
+            [0.9100020527839661, 
+            152.6877,
+            274.1250, 
+            40.3628,
+            15.5811,
+            -10.4553],
+            [0.9100020527839661, 
+            244.6877,
+            286.1250, 
+            70.3628,
+            20.5811,
+            1.4553],
+            [0.9100020527839661, 
+            366.6877,
+            258.1250, 
+            50.3628,
+            15.5811,
+            2.4553],
+            [0.9100020527839661, 
+            278.6877,
+            118.1250, 
+            70.3628,
+            15.5811,
+            145.4553],
+            [0.9100020527839661, 
+            336.6877,
+            52.1250, 
+            80.3628,
+            20.5811,
+            155.4553],
+            # [0.9100020527839661, 
+            # 200.6877,
+            # 129.1250, 
+            # 165.3628,
+            # 55.5811,
+            # 7.4553],
+            # [0.9100020527839661, 
+            # 202.6877,
+            # 138.1250, 
+            # 165.3628,
+            # 55.5811,
+            # 3.4553],
+            ]
+    print(grasp)
+    all_grasp += grasp
+
+    all_grasp = torch.tensor(all_grasp)
+    draw_multi_box(img, all_grasp)
