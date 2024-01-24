@@ -169,12 +169,8 @@ def train(epoch, net, device, train_data, optimizer, batches_per_epoch, vis=Fals
 
             xc = x.to(device)
             yc = [yy.to(device) for yy in y]
-            if epoch>0:
-                alpha = 0.4
-            else:
-                alpha = 0.4*min(1,batch_idx/len(train_data))
-            idx = torch.zeros(xc.shape[0]).to(device)
-            lossd = net.compute_loss(xc, yc, prompt, query, alpha, idx)
+
+            lossd = net.compute_loss(xc, yc, prompt, query)
 
             loss = lossd['loss']
 
