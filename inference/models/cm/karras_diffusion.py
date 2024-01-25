@@ -107,7 +107,7 @@ class KarrasDenoiser:
         self,
         model,
         x_start,
-        num_scales,
+        num_scales=2,
         model_kwargs=None,
         target_model=None,
         teacher_model=None,

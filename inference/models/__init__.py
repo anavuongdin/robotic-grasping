@@ -37,5 +37,8 @@ def get_network(network_name):
     elif network_name == 'lgdm':
         from .lgdm.network import LGDM
         return LGDM
+    elif network_name == 'cm':
+        from .cm.network import CM
+        return CM
     else:
         raise NotImplementedError('Network {} is not implemented'.format(network_name))

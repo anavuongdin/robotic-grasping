@@ -1,12 +1,16 @@
 from diffusion import gaussian_diffusion as gd
 from diffusion.respace import SpacedDiffusion, space_timesteps
 
+from inference.models.cm.karras_diffusion import KarrasDenoiser
+
 from utils.fixseed import fixseed
 
 def create_diffusion():
     diffusion = create_gaussian_diffusion(get_default_diffusion())
     return diffusion
 
+def create_karras_denoiser():
+    return KarrasDenoiser()
 
 def get_default_diffusion():
     args = {
