@@ -10,6 +10,7 @@ from inference.post_process import post_process_output
 from utils.data import get_dataset
 from utils.dataset_processing import evaluation, grasp
 from utils.visualisation.plot import save_results
+from utils.model_util import create_diffusion
 import inference.models.lgdm.albef.utils as utils
 
 logging.basicConfig(level=logging.INFO)
@@ -76,6 +77,8 @@ def parse_args():
     return args
 
 
+
+
 def _init_process():
     class WrapperArgument:
             def __init__(self):
@@ -96,12 +99,38 @@ def _init_process():
 
     utils.init_distributed_mode(args)
 
+
+class LookUp:
+    def __init__(self) -> None:
+        import os
+        import pickle
+        files = os.listdir('data/grasp-anything-new/grasp-anything++/prompt')
+        self.prompts = dict()
+        for file in files:
+            with open(os.path.join('data/grasp-anything-new/grasp-anything++/prompt', file), 'rb') as f:
+                prompt, queries = pickle.load(f)
+                idx = file.split('.')[0]
+                self.prompts[prompt] = idx
+        
+    def look_up(self, prompt):
+        if prompt in self.prompts:
+            return self.prompts[prompt]
+        return None
+        
+
 if __name__ == '__main__':
     _init_process()
     args = parse_args()
 
     # Get the compute device
     device = get_device(args.force_cpu)
+    lookup = LookUp()
+
+    diffusion = create_diffusion()
+
+    sample_fn = (
+            diffusion.p_sample_loop
+    )
 
     # Load Dataset
     logging.info('Loading {} Dataset...'.format(args.dataset.title()))
@@ -152,11 +181,25 @@ if __name__ == '__main__':
             for idx, (x, y, didx, rot, zoom, prompt, query) in enumerate(test_data):
                 img = x.to(device)
                 yc = [yi.to(device) for yi in y]
+                pos_gt = yc[0]
 
                 alpha = 0.4
                 idx = torch.zeros(img.shape[0]).to(device)
 
-                pos_output, cos_output, sin_output, width_output = net(None, img, None, query, alpha, idx)
+                sample = sample_fn(
+                    net,
+                    pos_gt.shape,
+                    pos_gt,
+                    img,
+                    query,
+                    alpha,
+                    idx,
+                )
+
+                pos_output = sample
+                cos_output, sin_output, width_output = net.cos_output_str, net.sin_output_str, net.width_output_str
+
+                # pos_output, cos_output, sin_output, width_output = net(None, img, None, query, alpha, idx)
                 lossd = net.compute_loss(yc, pos_output, cos_output, sin_output, width_output)
 
                 q_img, ang_img, width_img = post_process_output(lossd['pred']['pos'], lossd['pred']['cos'],
@@ -170,6 +213,8 @@ if __name__ == '__main__':
                                                        )
                     if s:
                         results['correct'] += 1
+                        with open("good.txt", 'a+') as f:
+                            f.writelines(lookup.look_up(prompt[0])+'\n')
                     else:
                         results['failed'] += 1
 
