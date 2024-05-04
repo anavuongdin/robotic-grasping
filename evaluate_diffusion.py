@@ -217,6 +217,8 @@ if __name__ == '__main__':
                             f.writelines(lookup.look_up(prompt[0])+'\n')
                     else:
                         results['failed'] += 1
+                        with open("bad.txt", 'a+') as f:
+                            f.writelines(lookup.look_up(prompt[0])+'\n')
 
                 if args.jacquard_output:
                     grasps = grasp.detect_grasps(q_img, ang_img, width_img=width_img, no_grasps=1)
