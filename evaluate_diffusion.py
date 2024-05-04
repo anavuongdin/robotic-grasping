@@ -104,10 +104,10 @@ class LookUp:
     def __init__(self) -> None:
         import os
         import pickle
-        files = os.listdir('data/grasp-anything-new/grasp-anything++/prompt')
+        files = os.listdir('data/grasp-anything++/prompt')
         self.prompts = dict()
         for file in files:
-            with open(os.path.join('data/grasp-anything-new/grasp-anything++/prompt', file), 'rb') as f:
+            with open(os.path.join('data/grasp-anything++/prompt', file), 'rb') as f:
                 prompt, queries = pickle.load(f)
                 idx = file.split('.')[0]
                 self.prompts[prompt] = idx
