@@ -99,25 +99,6 @@ def _init_process():
 
     utils.init_distributed_mode(args)
 
-
-class LookUp:
-    def __init__(self) -> None:
-        import os
-        import pickle
-        files = os.listdir('data/grasp-anything-new/grasp-anything++/prompt')
-        self.prompts = dict()
-        for file in files:
-            with open(os.path.join('data/grasp-anything-new/grasp-anything++/prompt', file), 'rb') as f:
-                prompt, queries = pickle.load(f)
-                idx = file.split('.')[0]
-                self.prompts[prompt] = idx
-        
-    def look_up(self, prompt):
-        if prompt in self.prompts:
-            return self.prompts[prompt]
-        return None
-        
-
 if __name__ == '__main__':
     _init_process()
     args = parse_args()
@@ -131,8 +112,6 @@ if __name__ == '__main__':
 
     # Get the compute device
     device = get_device(args.force_cpu)
-    lookup = LookUp()
-
     diffusion = create_diffusion()
 
     sample_fn = (
@@ -186,18 +165,8 @@ if __name__ == '__main__':
 
         start_time = time.time()
 
-        counter = 0
-        prev = 1200
-
         with torch.no_grad():
             for idx, (x, y, didx, rot, zoom, prompt, query) in enumerate(test_data):
-                if idx < prev:
-                    continue
-                else:
-                    with open("rest_seen.txt", 'a+') as f:
-                        f.writelines(lookup.look_up(prompt[0])+'\n')
-                    continue
-                print(idx)
                 img = x.to(device)
                 yc = [yi.to(device) for yi in y]
                 pos_gt = yc[0]
@@ -232,12 +201,8 @@ if __name__ == '__main__':
                                                        )
                     if s:
                         results['correct'] += 1
-                        with open("good_seen.txt", 'a+') as f:
-                            f.writelines(lookup.look_up(prompt[0])+'\n')
                     else:
                         results['failed'] += 1
-                        with open("bad.txt", 'a+') as f:
-                            f.writelines(lookup.look_up(prompt[0])+'\n')
 
                 if args.jacquard_output:
                     grasps = grasp.detect_grasps(q_img, ang_img, width_img=width_img, no_grasps=1)
