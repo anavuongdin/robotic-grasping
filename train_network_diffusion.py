@@ -127,17 +127,18 @@ def validate(net, diffusion, schedule_sampler, device, val_data, iou_threshold):
             alpha = 0.4
             idx = torch.ones(img.shape[0]).to(device)
 
-            pos_output, cos_output, sin_output, width_output = net(None, img, None, query, alpha, idx)
+            sample = sample_fn(
+                net,
+                pos_gt.shape,
+                pos_gt,
+                img,
+                query,
+                alpha,
+                idx,
+            )
 
-            # sample = sample_fn(
-            #     net,
-            #     pos_gt.shape,
-            #     pos_gt,
-            #     img,
-            #     query,
-            #     alpha,
-            #     idx,
-            # )
+            pos_output = sample
+            cos_output, sin_output, width_output = net.cos_output_str, net.sin_output_str, net.width_output_str
 
             lossd = net.compute_loss(yc, pos_output, cos_output, sin_output, width_output)
             loss = lossd['loss']
@@ -201,7 +202,7 @@ def train(epoch, net, diffusion, schedule_sampler, device, train_data, optimizer
     # Setup for DDPM
     sample_fn = (
             diffusion.p_sample_loop
-        )
+    )
 
     batch_idx = 0
     # Use batches per epoch to make training on different sized datasets (cornell/jacquard) more equivalent.
@@ -223,20 +224,20 @@ def train(epoch, net, diffusion, schedule_sampler, device, train_data, optimizer
             t, weights = schedule_sampler.sample(img.shape[0], device)
 
             # Calculate loss
-            # compute_losses = functools.partial(
-            #     diffusion.training_losses,
-            #     net,
-            #     pos_gt,
-            #     img,
-            #     t,  # [bs](int) sampled timesteps
-            #     query,
-            #     alpha,
-            #     idx,
-            # )
-            # losses = compute_losses()
-            # loss = (losses["loss"] * weights).mean()
+            compute_losses = functools.partial(
+                diffusion.training_losses,
+                net,
+                pos_gt,
+                img,
+                t,  # [bs](int) sampled timesteps
+                query,
+                alpha,
+                idx,
+            )
+            losses = compute_losses()
+            loss = (losses["loss"] * weights).mean()
 
-            pos_output, cos_output, sin_output, width_output = net(None, img, None, query, alpha, idx)
+            pos_output, cos_output, sin_output, width_output = net.pos_output_str, net.cos_output_str, net.sin_output_str, net.width_output_str
 
             # Backward loss
             # mp_trainer.backward(loss)

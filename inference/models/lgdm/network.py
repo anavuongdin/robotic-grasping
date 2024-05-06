@@ -111,12 +111,11 @@ class LGDM(LanguageGraspModel):
         sin_output = self.sin_output(img)
         width_output = self.width_output(img)
 
+        self.guiding_point = pos_output
         # Combine noise features from forward process to the guiding region
         pos_output = x + pos_output
-
         self.pos_output_str, self.cos_output_str, self.sin_output_str, self.width_output_str = pos_output, cos_output, sin_output, width_output
         
-        # return pos_output, cos_output, sin_output, width_output
         return pos_output
 
     def _process_attention_mask(self, image_atts):

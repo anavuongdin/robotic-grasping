@@ -126,3 +126,6 @@ class _WrappedModel:
         if self.rescale_timesteps:
             new_ts = new_ts.float() * (1000.0 / self.original_num_steps)
         return self.model(x, img, ts, text, alpha, idx, **kwargs)
+    
+    def get_guiding_point(self):
+        return self.model.guiding_point

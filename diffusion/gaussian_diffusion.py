@@ -10,6 +10,7 @@ import math
 
 import numpy as np
 import torch as th
+import torch.nn.functional as F
 
 from .nn import mean_flat
 from .losses import normal_kl, discretized_gaussian_log_likelihood
@@ -96,6 +97,21 @@ class LossType(enum.Enum):
 
     def is_vb(self):
         return self == LossType.KL or self == LossType.RESCALED_KL
+
+
+class NCELoss(th.nn.Module):
+    def __init__(self):
+        super(NCELoss, self).__init__()
+
+    def forward(self, x, y):
+        # Calculate Euclidean distance
+        euclidean_distance = F.pairwise_distance(x, y)
+        # Use norm of x as the margin
+        margin = th.norm(x)
+        # Compute contrastive loss
+        loss_contrastive = th.mean((1 - margin) * th.pow(euclidean_distance, 2) +
+                                      margin * th.pow(th.clamp(margin - euclidean_distance, min=0), 2))
+        return loss_contrastive
 
 
 class GaussianDiffusion:
@@ -804,7 +820,7 @@ class GaussianDiffusion:
                 terms["loss"] *= self.num_timesteps
         elif self.loss_type == LossType.MSE or self.loss_type == LossType.RESCALED_MSE:
             model_output = model(x_t, img, self._scale_timesteps(t), text, alpha, idx, **model_kwargs)
-
+        
             if self.model_var_type in [
                 ModelVarType.LEARNED,
                 ModelVarType.LEARNED_RANGE,
@@ -827,6 +843,13 @@ class GaussianDiffusion:
                     # Without a factor of 1/1000, the VB term hurts the MSE term.
                     terms["vb"] *= self.num_timesteps / 1000.0
 
+            # Contrastive loss
+            criterion = NCELoss()
+            guiding_point = model.get_guiding_point()
+            positive_term = criterion(x_t, model_output) 
+            negative_term = criterion(x_t, guiding_point)
+            terms["contr"] = max(0, 1-(positive_term/negative_term)**2)
+
             target = {
                 ModelMeanType.PREVIOUS_X: self.q_posterior_mean_variance(
                     x_start=x_start, x_t=x_t, t=t
@@ -837,7 +860,7 @@ class GaussianDiffusion:
             assert model_output.shape == target.shape == x_start.shape
             terms["mse"] = mean_flat((target - model_output) ** 2)
             if "vb" in terms:
-                terms["loss"] = terms["mse"] + terms["vb"]
+                terms["loss"] = terms["mse"] + terms["vb"] + 1e-3 * terms["contr"]
             else:
                 terms["loss"] = terms["mse"]
         else:
