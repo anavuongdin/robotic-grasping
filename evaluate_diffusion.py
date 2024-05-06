@@ -104,10 +104,10 @@ class LookUp:
     def __init__(self) -> None:
         import os
         import pickle
-        files = os.listdir('data/grasp-anything++/prompt')
+        files = os.listdir('data/grasp-anything-new/grasp-anything++/prompt')
         self.prompts = dict()
         for file in files:
-            with open(os.path.join('data/grasp-anything++/prompt', file), 'rb') as f:
+            with open(os.path.join('data/grasp-anything-new/grasp-anything++/prompt', file), 'rb') as f:
                 prompt, queries = pickle.load(f)
                 idx = file.split('.')[0]
                 self.prompts[prompt] = idx
@@ -121,6 +121,13 @@ class LookUp:
 if __name__ == '__main__':
     _init_process()
     args = parse_args()
+    # Set seed for CPU
+    torch.manual_seed(args.random_seed)
+
+    # Set seed for GPU if available
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.random_seed)
+    np.random.seed(args.random_seed)
 
     # Get the compute device
     device = get_device(args.force_cpu)
@@ -154,6 +161,8 @@ if __name__ == '__main__':
     val_sampler = torch.utils.data.sampler.SubsetRandomSampler(val_indices)
     logging.info('Validation size: {}'.format(len(val_indices)))
 
+    # test_dataset = sorted(test_dataset, key=lambda x: x[5])
+
     test_data = torch.utils.data.DataLoader(
         test_dataset,
         batch_size=1,
@@ -177,8 +186,18 @@ if __name__ == '__main__':
 
         start_time = time.time()
 
+        counter = 0
+        prev = 1200
+
         with torch.no_grad():
             for idx, (x, y, didx, rot, zoom, prompt, query) in enumerate(test_data):
+                if idx < prev:
+                    continue
+                else:
+                    with open("rest_seen.txt", 'a+') as f:
+                        f.writelines(lookup.look_up(prompt[0])+'\n')
+                    continue
+                print(idx)
                 img = x.to(device)
                 yc = [yi.to(device) for yi in y]
                 pos_gt = yc[0]
@@ -213,7 +232,7 @@ if __name__ == '__main__':
                                                        )
                     if s:
                         results['correct'] += 1
-                        with open("good.txt", 'a+') as f:
+                        with open("good_seen.txt", 'a+') as f:
                             f.writelines(lookup.look_up(prompt[0])+'\n')
                     else:
                         results['failed'] += 1
