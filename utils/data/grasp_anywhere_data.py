@@ -33,11 +33,11 @@ class GraspAnywhereDataset(LanguageGraspDatasetBase):
         self.mask_files = glob.glob(os.path.join(file_path, 'mask', '*.npy'))
 
         if kwargs["seen"]:
-            with open(os.path.join('split/grasp-anything/seen.obj'), 'rb') as f:
+            with open(os.path.join('split/grasp-anything++/test/seen.obj'), 'rb') as f:
                 idxs = pickle.load(f)
             self.grasp_files = list(filter(lambda x: x.split('/')[-1][:-5] in idxs, self.grasp_files))
         else:
-            with open(os.path.join('split/grasp-anything/unseen.obj'), 'rb') as f:
+            with open(os.path.join('split/grasp-anything/test/unseen.obj'), 'rb') as f:
                 idxs = pickle.load(f)
 
             self.grasp_files = list(filter(lambda x: x.split('/')[-1][:-5] in idxs, self.grasp_files))
